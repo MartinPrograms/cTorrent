@@ -20,6 +20,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-parameter -Wno-unused-variable -
 
 # Include the src/Core/File directory
 add_subdirectory(src/Core/File)
+add_subdirectory(src/Core/String)
+
+add_subdirectory(src/Protocol/Bencode)
 
 # The CLI application
 add_executable(cTorrent

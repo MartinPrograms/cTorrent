@@ -23,7 +23,7 @@ cTorrent is a simple BitTorrent CLI written in C. It is a very minimal implement
 - /src/Engine/ConnectionManager - Connection manager for the BitTorrent protocol
 - /src/Engine/PeerManager - Peer manager for the BitTorrent protocol
 - /src/Engine/PieceManager - Piece manager for the BitTorrent protocol
-- /src/Protocol/BenCode - Bencoding and Bdecoding, for .torrent files
+- /src/Protocol/Bencode - Bencoding and Bdecoding, for .torrent files
 - /src/Protocol/BitTorrent - BitTorrent protocol implementation
 
 ## Building
