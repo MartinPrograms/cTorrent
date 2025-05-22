@@ -7,77 +7,92 @@
 #define TEST_FILENAME "temp_test_file.txt"
 #define TEST_CONTENT  "Hello, CoreFile!"
 
-// Helper to clean up CoreFile*
 static void destroy_corefile(CoreFile *cf) {
     if (!cf) return;
-    if (cf->file) fclose(cf->file);
-    free(cf->name);
-    free(cf->path);
-    free(cf);
+    CoreFile_close(cf);
 }
 
-// Test opening a real file
-START_TEST(test_open_valid_file)
+START_TEST(test_corefile_create_and_size)
 {
-    // Create a temp file with known content
-    FILE *f = fopen(TEST_FILENAME, "w");
-    ck_assert_ptr_nonnull(f);
-    fprintf(f, TEST_CONTENT);
-    fclose(f);
-
-    // Open via CoreFile_open
-    CoreFile *cf = CoreFile_open(TEST_FILENAME, "r");
+    CoreFile *cf = CoreFile_create(TEST_FILENAME, "wb+");
     ck_assert_ptr_nonnull(cf);
 
-    // name should be the filename only
-    ck_assert_str_eq(cf->name, TEST_FILENAME);
+    const char *data = TEST_CONTENT;
+    size_t len = strlen(data);
+    int written = CoreFile_write(cf, data, len);
+    ck_assert_int_eq(written, (int)len);
 
-    // path should match exactly
-    ck_assert_str_eq(cf->path, TEST_FILENAME);
+    CoreFile_flush(cf);
 
-    // size should equal length of TEST_CONTENT
-    size_t expected = strlen(TEST_CONTENT);
-    ck_assert_uint_eq(cf->size, expected);
+    uint64_t size = CoreFile_get_size(cf);
+    ck_assert_uint_eq(size, len);
 
     destroy_corefile(cf);
-    // remove temp file
     remove(TEST_FILENAME);
 }
 END_TEST
 
-// Test NULL path or mode
-START_TEST(test_open_null_args)
+START_TEST(test_corefile_read_write_chunk)
 {
-    CoreFile *cf1 = CoreFile_open(NULL, "r");
-    ck_assert_ptr_null(cf1);
+    CoreFile *cf = CoreFile_create(TEST_FILENAME, "wb+");
+    ck_assert_ptr_nonnull(cf);
 
-    CoreFile *cf2 = CoreFile_open(TEST_FILENAME, NULL);
-    ck_assert_ptr_null(cf2);
+    const char *chunk = "1234567890";
+    size_t len = strlen(chunk);
+    CoreFile_write_chunk(cf, chunk, len, 5);
+    CoreFile_flush(cf);
+
+    char buffer[16] = {0};
+    CoreFile_read_chunk(cf, buffer, len, 5);
+    ck_assert_str_eq(buffer, chunk);
+
+    destroy_corefile(cf);
+    remove(TEST_FILENAME);
 }
 END_TEST
 
-// Test opening a non‑existent file
-START_TEST(test_open_nonexistent_file)
+START_TEST(test_corefile_exists_and_delete)
 {
-    const char *badpath = "this_file_does_not_exist.txt";
-    CoreFile *cf = CoreFile_open(badpath, "r");
-    ck_assert_ptr_null(cf);
+    CoreFile *cf = CoreFile_create(TEST_FILENAME, "wb");
+    ck_assert_ptr_nonnull(cf);
+    CoreFile_flush(cf);
+    CoreFile_close(cf);
+
+    ck_assert(CoreFile_exists(TEST_FILENAME));
+
+    cf = CoreFile_open(TEST_FILENAME, "rb");
+    CoreFile_delete(cf);
+
+    ck_assert(CoreFile_exists(TEST_FILENAME) == false);
+}
+END_TEST
+
+START_TEST(test_corefile_preallocate)
+{
+    CoreFile *cf = CoreFile_create(TEST_FILENAME, "wb+");
+    ck_assert_ptr_nonnull(cf);
+
+    CoreFile_preallocate(cf, 4096);
+    CoreFile_flush(cf);
+    ck_assert_uint_ge(CoreFile_get_size(cf), 4096);
+
+    destroy_corefile(cf);
+    remove(TEST_FILENAME);
 }
 END_TEST
 
 Suite *corefile_suite(void) {
     Suite *s = suite_create("CoreFile");
-    TCase *tc_core = tcase_create("Core");
+    TCase *tc = tcase_create("CoreFileTests");
 
-    tcase_add_test(tc_core, test_open_valid_file);
-    tcase_add_test(tc_core, test_open_null_args);
-    tcase_add_test(tc_core, test_open_nonexistent_file);
+    tcase_add_test(tc, test_corefile_create_and_size);
+    tcase_add_test(tc, test_corefile_read_write_chunk);
+    tcase_add_test(tc, test_corefile_exists_and_delete);
+    tcase_add_test(tc, test_corefile_preallocate);
 
-    suite_add_tcase(s, tc_core);
+    suite_add_tcase(s, tc);
     return s;
 }
-
-// shitty chatgpt generated test. Is going to be replaced with a real one when i have time
 
 int main(void) {
     int failed;
