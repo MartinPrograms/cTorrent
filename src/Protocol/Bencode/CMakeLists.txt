@@ -15,6 +15,7 @@ target_link_libraries(ben_code
     PUBLIC
         core_file
         core_string
+        core_generic
 )
 
 target_include_directories(ben_code

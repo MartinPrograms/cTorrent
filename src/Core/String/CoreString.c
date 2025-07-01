@@ -15,10 +15,29 @@ CoreString *CoreString_create(const char *str){
     return coreString;
 }
 
+CoreString * CoreString_create_with_length(const char *str, size_t length) {
+    CoreString *coreString = (CoreString *)malloc(sizeof(CoreString));
+    if (coreString == NULL) {
+        return NULL; // Memory allocation failed
+    }
+    coreString->length = length;
+    coreString->str = (char *)malloc(length + 1);
+    if (coreString->str == NULL) {
+        free(coreString);
+        return NULL; // Memory allocation failed
+    }
+    if (length > 0) {
+        strncpy(coreString->str, str, length);
+    }
+    coreString->str[length] = '\0'; // Null-terminate the string
+    return coreString;
+}
+
 void CoreString_destroy(CoreString *coreString){
     if (coreString != NULL) {
         free(coreString->str);
         free(coreString);
+        coreString = NULL; // Set to NULL to avoid dangling pointer
     }
 }
 

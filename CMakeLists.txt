@@ -21,16 +21,26 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-parameter -Wno-unused-variable -
 # Include the src/Core/File directory
 add_subdirectory(src/Core/File)
 add_subdirectory(src/Core/String)
+add_subdirectory(src/Core/Generic)
+add_subdirectory(src/Core/Socket)
+add_subdirectory(src/Core/Networking)
 
 add_subdirectory(src/Protocol/Bencode)
+add_subdirectory(src/Protocol/BitTorrent)
 
 # The CLI application
 add_executable(cTorrent
     src/Application/CLI/main.c
 )
 
+find_package(CURL REQUIRED)
+if (NOT CURL_FOUND)
+    message(FATAL_ERROR "CURL not found. Please install libcurl development files.")
+endif()
+
 install(TARGETS cTorrent RUNTIME DESTINATION bin)
-target_link_libraries(cTorrent PRIVATE core_file)
+target_link_libraries(cTorrent PRIVATE core_file core_generic core_string core_socket
+    ben_code protocol_bittorrent core_networking curl)
 target_include_directories(cTorrent PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>

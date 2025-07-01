@@ -10,7 +10,9 @@ typedef struct {
     size_t length;
 } CoreString;
 
+
 CoreString *CoreString_create(const char *str);
+CoreString *CoreString_create_with_length(const char *str, size_t length);
 void CoreString_destroy(CoreString *coreString);
 
 void CoreString_append(CoreString *coreString, const char *str);

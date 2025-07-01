@@ -18,6 +18,7 @@ cTorrent is a simple BitTorrent CLI written in C. It is a very minimal implement
 - /src/Core/File - High level file abstraction
 - /src/Core/Logger - Basic logging system
 - /src/Core/Networking - Network abstraction layer
+- /src/Core/Generic - Generic utility functions (stack for now)
 - /src/Core/Socket - Socket abstraction layer (network builds on top of this)
 - /src/Core/Thread - Thread abstraction layer
 - /src/Engine/ConnectionManager - Connection manager for the BitTorrent protocol
